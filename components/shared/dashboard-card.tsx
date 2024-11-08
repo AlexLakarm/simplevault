@@ -1,7 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useAccount, useReadContract, usePublicClient, useWatchContractEvent } from 'wagmi'
+import { useAccount, usePublicClient, useWatchContractEvent } from 'wagmi'
 import { contractABI, contractAddress } from '@/app/config/contract'
 import { formatEther } from "viem"
 import { useEffect, useState } from "react"
@@ -37,6 +37,51 @@ export function DashboardCard() {
     const [balance, setBalance] = useState<bigint | undefined>()
     const [hasInitialized, setHasInitialized] = useState(false)
 
+    // Déplacer fetchEvents avant son utilisation
+    const fetchEvents = async () => {
+        if (!address || !publicClient) return
+
+        try {
+            const currentBlock = await publicClient.getBlockNumber()
+            const fromBlock = currentBlock - BigInt(50000) > BigInt(0) 
+                ? currentBlock - BigInt(50000) 
+                : BigInt(0)
+
+            const depositLogs = await publicClient.getContractEvents({
+                address: contractAddress,
+                abi: contractABI,
+                eventName: 'Deposit',
+                args: { user: address },
+                fromBlock
+            })
+
+            const deposits = depositLogs.map(log => ({
+                user: log.args.user as string,
+                amount: log.args.amount as bigint,
+                transactionHash: log.transactionHash
+            }))
+
+            const withdrawLogs = await publicClient.getContractEvents({
+                address: contractAddress,
+                abi: contractABI,
+                eventName: 'Withdraw',
+                args: { user: address },
+                fromBlock
+            })
+
+            const withdrawals = withdrawLogs.map(log => ({
+                user: log.args.user as string,
+                amount: log.args.amount as bigint,
+                transactionHash: log.transactionHash
+            }))
+
+            setDeposits(deposits)
+            setWithdrawals(withdrawals)
+        } catch (error) {
+            console.error('Error fetching events:', error)
+        }
+    }
+
     // Lecture du solde
     const getBalance = async () => {
         if (!address || !publicClient) return
@@ -53,7 +98,7 @@ export function DashboardCard() {
         }
     }
 
-    // Chargement initial unique
+    // Chargement initial
     useEffect(() => {
         if (address && !hasInitialized) {
             getBalance()
@@ -90,55 +135,6 @@ export function DashboardCard() {
         }
     })
 
-    // Fonction pour mettre à jour uniquement l'historique
-    const fetchEvents = async () => {
-        if (!address || !publicClient) return
-
-        try {
-            // Obtenir le bloc actuel
-            const currentBlock = await publicClient.getBlockNumber()
-            // Calculer le bloc de départ (50000 blocs en arrière ou 0 si moins)
-            const fromBlock = currentBlock - BigInt(50000) > BigInt(0) 
-                ? currentBlock - BigInt(50000) 
-                : BigInt(0)
-
-            // Récupérer les dépôts
-            const depositLogs = await publicClient.getContractEvents({
-                address: contractAddress,
-                abi: contractABI,
-                eventName: 'Deposit',
-                args: { user: address },
-                fromBlock
-            })
-
-            const deposits = depositLogs.map(log => ({
-                user: log.args.user as string,
-                amount: log.args.amount as bigint,
-                transactionHash: log.transactionHash
-            }))
-
-            // Récupérer les retraits
-            const withdrawLogs = await publicClient.getContractEvents({
-                address: contractAddress,
-                abi: contractABI,
-                eventName: 'Withdraw',
-                args: { user: address },
-                fromBlock
-            })
-
-            const withdrawals = withdrawLogs.map(log => ({
-                user: log.args.user as string,
-                amount: log.args.amount as bigint,
-                transactionHash: log.transactionHash
-            }))
-
-            setDeposits(deposits)
-            setWithdrawals(withdrawals)
-        } catch (error) {
-            console.error('Error fetching events:', error)
-        }
-    }
-
     return (
         <Card>
             <CardHeader>
@@ -167,11 +163,8 @@ export function DashboardCard() {
                         <CardContent>
                             <div className="space-y-2">
                                 {deposits.length > 0 ? (
-                                    deposits.map((deposit, index) => (
-                                        <div 
-                                            key={deposit.transactionHash} 
-                                            className="text-sm p-2 bg-green-500/10 rounded-lg border border-green-500/20"
-                                        >
+                                    deposits.map((deposit) => (
+                                        <div key={deposit.transactionHash}>
                                             <span className="font-medium text-green-600 dark:text-green-400">
                                                 +{formatEther(deposit.amount)} ETH
                                             </span>
@@ -192,11 +185,8 @@ export function DashboardCard() {
                         <CardContent>
                             <div className="space-y-2">
                                 {withdrawals.length > 0 ? (
-                                    withdrawals.map((withdrawal, index) => (
-                                        <div 
-                                            key={withdrawal.transactionHash} 
-                                            className="text-sm p-2 bg-red-500/10 rounded-lg border border-red-500/20"
-                                        >
+                                    withdrawals.map((withdrawal) => (
+                                        <div key={withdrawal.transactionHash}>
                                             <span className="font-medium text-red-600 dark:text-red-400">
                                                 -{formatEther(withdrawal.amount)} ETH
                                             </span>

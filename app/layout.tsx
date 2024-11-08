@@ -1,5 +1,5 @@
 import CustomRainbowKitProvider from "@/components/shared/customRainbowKit";
-import { Inter, Quicksand } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import type { Metadata } from "next";
 import Header from "@/components/shared/header";
@@ -8,10 +8,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
-const quicksand = Quicksand({ 
-  subsets: ["latin"],
-  weight: ['300', '400', '500', '600', '700']
-});
 
 export const metadata: Metadata = {
   title: "Ultimate Vault",
