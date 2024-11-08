@@ -1,5 +1,4 @@
 import Image from 'next/image';
-import nextLogo from '@/app/assets/next.png';
 
 export default function Footer() {
   return (
@@ -7,7 +6,7 @@ export default function Footer() {
       <p className="text-black dark:text-white">Powered by Next.js and Alyra</p>
       <div className="flex justify-center items-center mt-2">
         <Image 
-          src={nextLogo}
+          src="/images/next.png"
           alt="Next.js Logo" 
           width={100} 
           height={20}

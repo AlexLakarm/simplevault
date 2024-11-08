@@ -7,7 +7,6 @@ import { Rocket } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Quicksand } from "next/font/google";
-import backgroundImage from './assets/background.jpg';
 
 const quicksand = Quicksand({ 
   subsets: ["latin"],
@@ -22,7 +21,7 @@ export default function Home() {
       <Card className="max-w-md mx-auto mt-8 relative overflow-hidden min-h-[500px]">
         <div className="absolute inset-0 w-full h-full">
           <Image
-            src={backgroundImage}
+            src="/images/background.jpg"
             alt="Vault background"
             fill
             priority
